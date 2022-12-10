@@ -1,0 +1,141 @@
+```c
+void get_biggest_contour(SDL_Surface *surface)
+{
+    //definir M[h][w] ou comme pixels
+    //mise à 0
+    //pointeur ?
+    //
+    //Choisir le sens de rotation
+    //
+    //--Pendant le process de moore :--
+    //Si on tombe sur un px de couleur,
+    //Si c'est le pixel de départ, on arrête 
+    //Si il est marqué, on annule et on va tout droit
+    //Sinon on y va, on le marque et on repart
+    
+
+    //printf("start get_bc\n");
+    
+    int width = surface->w;
+    int height = surface->h;
+
+    //printf("width = %i ; height = %i\n",width, height);
+    //TODO : fill all image contours in black
+    /*
+    for (int i = 0; i<width;i++)
+    {
+        put_pixel(surface, 0, i, 200);
+        put_pixel(surface, height-1, i, 200);
+        //fill black pixel[0][i]
+        //fill black pixel[height-1][width]
+    }
+    for (int i = 0; i<height;i++)
+    {
+        put_pixel(surface, i, 0, 200);
+        put_pixel(surface, i, width-1, 200);
+        //fill black pixel[i][0]
+        //fill_black pixel[i][width-1]
+    }
+    */
+
+    int *s = calloc(2, sizeof(int));
+
+    int **M;
+    M = calloc(height, sizeof(int *));
+    for (int i = 0; i < height; i++)
+    {
+        M[i] = calloc(width, sizeof(int));
+    }
+
+    int j;
+
+    Uint32 pixel;
+    Uint8 r, g, b;
+    Uint32 a;
+
+    int moore_res;
+    int maxi = 0;
+    int ind_max = 0; //index of the maximum form
+    int ind = 0; //current filling index for each contour
+
+    
+    //printf("callocs done\n");
+
+
+    for (int i = 0; i < height; i++)
+    {
+        j = 0;
+        while(j < width)
+        {
+	        pixel =  get_pixel(surface,j,i);
+	    
+	        SDL_GetRGB(pixel, surface->format, &r, &g, &b);
+	        a = 0.3*r+0.59*g+0.11*b;
+
+	        if (a>225)
+	        {   
+	            if (M[i][j] == 0)
+                {
+                    //printf("\nind = %i\n",ind);
+                    ind++;
+                    M[i][j] = ind;
+                    //printf("calling moore\n");
+                    s[0] = i;
+                    s[1] = j;
+                    moore_res = moore(surface, ind, width, height, M, s, i-1, j);
+                    
+                    //printf("moore res = %i ; round %i\n", moore_res, i);
+                    if (moore_res > maxi)
+                    {
+                        maxi = moore_res;
+                        ind_max = ind;
+                    }
+
+                    /*
+                    for (int i1 = 0; i1 < height; i1++)
+                    {
+                        for (int j1 = 0; j1 < width; j1++)
+                        {
+                            if (M[i1][j1] == 0)
+                                printf("_");
+                            else
+                                printf("%i", M[i1][j1]);
+                        }
+                        printf("\n");
+                    }
+
+                    */
+
+
+                }
+                j = width;
+            }
+            else
+                j++;
+        }
+        //printf("end round i = %i / %i\n",i+1,height);
+    }
+
+    printf("fill calling\n");
+    fill(surface, 1, M, 1, ind_max, width, height);
+    printf("second");
+    fill(surface, -1, M, 1, ind_max, width, height);
+    IMG_SavePNG(surface, "./test.jpg");
+    
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            if (M[i][j] == 0)
+                printf("_");
+            else
+                printf("%i", M[i][j]);
+        }
+        printf("\n");
+    }
+    printf("%i\n", ind_max);
+    //maybe call fill in the main function rather than here
+
+}
+
+```
